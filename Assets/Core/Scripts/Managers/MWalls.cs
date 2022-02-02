@@ -5,7 +5,7 @@ using UnityEngine;
 using System.Linq;
 using UniRx;
 
-public class MWalls : Singleton<MWalls>
+public class MWalls : MonoBehaviour
 {
     public float wallsMovementSpeed = -7f;
     public float outOfScreenDist = 25f;

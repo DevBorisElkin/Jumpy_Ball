@@ -1,11 +1,14 @@
 using UnityEngine;
 
+[RequireComponent(typeof(PhysicsComponent))]
 public class Player : MonoBehaviour
 {
     public PhysicsEngine physicsEngine;
+    private PhysicsComponent _physicsComponent;
     private InputService inputService;
     void Start()
     {
+        _physicsComponent = GetComponent<PhysicsComponent>();
         InitInput();
         SubscribeToEvents(true);
     }
@@ -27,10 +30,13 @@ public class Player : MonoBehaviour
 
     void OnPlayerClick()
     {
-        Debug.Log("Player Clicked!");
+        if(CanFlipPhysics())
+            physicsEngine.gravityForce.Value = -physicsEngine.gravityForce.Value;
+    }
 
-        physicsEngine.gravityForce.Value = -physicsEngine.gravityForce.Value;
-
+    bool CanFlipPhysics()
+    {
+        return _physicsComponent.hasBottomSupport && _physicsComponent.hasUpperSupport;
     }
 
     private void OnDestroy() => SubscribeToEvents(false);
