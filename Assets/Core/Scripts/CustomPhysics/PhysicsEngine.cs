@@ -17,7 +17,7 @@ public class PhysicsEngine : MonoBehaviour
     List<PhysicsComponent> physicsComponents;
     List<WorldComponent> obstacles;
     
-    public float maxCollisionCheckDistance = 5f;
+    public float maxCollisionCheckDistance = 25f;
     
     private void Start()
     {
@@ -78,15 +78,11 @@ public class PhysicsEngine : MonoBehaviour
                 if (physComp == a) continue;
                 if (WorldComponent.DoComponentsIntersect(physComp, a))
                 {
-                    
-                    
                     if (gravityForce.Value < 0)
                     {
                         if(physComp.transform.position.y < a.transform.position.y) continue;
-                        
                         if (physComp.transform.position.y > a.transform.position.y)
                         {
-                            Debug.Log("Normalize_1");
                             physComp.Normalize(a);
                             break;
                         }
@@ -94,10 +90,8 @@ public class PhysicsEngine : MonoBehaviour
                     else if (gravityForce.Value > 0)
                     {
                         if (physComp.transform.position.y > a.transform.position.y) continue;
-                        
                         if (physComp.transform.position.y < a.transform.position.y)
                         {
-                            Debug.Log("Normalize_2");
                             physComp.Normalize(a);
                             break;
                         }
