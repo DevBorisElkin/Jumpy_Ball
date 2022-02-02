@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    public PhysicsEngine physicsEngine;
     private InputService inputService;
     void Start()
     {
@@ -27,6 +28,9 @@ public class Player : MonoBehaviour
     void OnPlayerClick()
     {
         Debug.Log("Player Clicked!");
+
+        physicsEngine.gravityForce = -physicsEngine.gravityForce;
+
     }
 
     private void OnDestroy() => SubscribeToEvents(false);
