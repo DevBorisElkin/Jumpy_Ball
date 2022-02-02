@@ -29,7 +29,7 @@ public class Player : MonoBehaviour
     {
         Debug.Log("Player Clicked!");
 
-        physicsEngine.gravityForce = -physicsEngine.gravityForce;
+        physicsEngine.gravityForce.Value = -physicsEngine.gravityForce.Value;
 
     }
 

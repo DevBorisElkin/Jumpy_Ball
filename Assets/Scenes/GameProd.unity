@@ -332,7 +332,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d259c4fc55ece43408c55515884ae25a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gravityForce: -9.81
+  gravityForce:
+    value: -9.81
   maxClampedFallSpeed: 9.81
   checkForCollisions: 1
   maxCollisionCheckDistance: 5
@@ -483,6 +484,7 @@ MonoBehaviour:
   mass: 1
   clampMaxFallingSpeed: 1
   hasBottomSupport: 0
+  hasUpperSupport: 0
   vecocity: {x: 0, y: 0}
 --- !u!212 &1349192601
 SpriteRenderer:

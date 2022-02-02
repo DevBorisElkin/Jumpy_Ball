@@ -1,15 +1,19 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using UniRx;
 using UnityEngine;
 //using System.Linq;
 
 public class PhysicsEngine : MonoBehaviour
 {
-    public float gravityForce = 9.81f;
+    public ReactiveProperty<float> gravityForce = new ReactiveProperty<float>();
     public float maxClampedFallSpeed = 9.81f;
 
     public bool checkForCollisions = true;
 
+    private CompositeDisposable _compositeDisposable = new CompositeDisposable();
+    
     List<PhysicsComponent> physicsComponents;
     List<WorldComponent> obstacles;
     
@@ -21,6 +25,14 @@ public class PhysicsEngine : MonoBehaviour
         physicsComponents.AddRange(FindObjectsOfType<PhysicsComponent>());
         obstacles = new List<WorldComponent>();
         obstacles.AddRange(FindObjectsOfType<WorldComponent>());
+
+        gravityForce.Subscribe(_ => NotifyPhysicsComponents()).AddTo(_compositeDisposable);
+    }
+
+    void NotifyPhysicsComponents()
+    {
+        foreach (var physComponent in physicsComponents)
+            physComponent.ResetSupportsData();
     }
 
     private void FixedUpdate()
@@ -33,7 +45,7 @@ public class PhysicsEngine : MonoBehaviour
     {
         foreach (PhysicsComponent a in physicsComponents) 
         {
-            if(!a.hasBottomSupport)
+            if(gravityForce.Value < 0 && !a.hasBottomSupport || gravityForce.Value > 0 && !a.hasUpperSupport)
                 CalculateGravityFixedUpdate(a);
         }
     }
@@ -42,10 +54,10 @@ public class PhysicsEngine : MonoBehaviour
     {
         if (physComp.clampMaxFallingSpeed)
         {
-            physComp.vecocity.y = Mathf.Clamp(physComp.vecocity.y + gravityForce * Time.deltaTime,
+            physComp.vecocity.y = Mathf.Clamp(physComp.vecocity.y + gravityForce.Value * Time.deltaTime,
                 -Mathf.Abs(maxClampedFallSpeed), Mathf.Abs(maxClampedFallSpeed));
         }
-        else physComp.vecocity.y += gravityForce * Time.deltaTime;
+        else physComp.vecocity.y += gravityForce.Value * Time.deltaTime;
         
         physComp.transform.Translate(physComp.vecocity * Time.deltaTime);
     }
@@ -56,26 +68,7 @@ public class PhysicsEngine : MonoBehaviour
         //CheckCollisionsForPhysComponent();
         CheckCollisionsWithOtherPhysComp();
     }
-
-    //void CheckCollisionsForPhysComponent()
-    //{
-    //    foreach (PhysicsComponent a in physicsComponents)
-    //    {
-    //        foreach (WorldComponent b in GetClosestComponents(a, maxCollisionCheckDistance))
-    //        {
-    //            if (WorldComponent.DoComponentsIntersect(a, b))
-    //            {
-    //                a.hasBottomSupport = true;
-    //                a.vecocity = new Vector3(0, 0, 0);
-    //                WorldComponent.FixYPosition(a, b);
-    //                break;
-    //            }
-    //        }
-    //        a.hasBottomSupport = false;
-    //    }
-    //    
-    //}
-
+    
     void CheckCollisionsWithOtherPhysComp()
     {
         foreach(PhysicsComponent physComp in physicsComponents)
@@ -85,32 +78,36 @@ public class PhysicsEngine : MonoBehaviour
                 if (physComp == a) continue;
                 if (WorldComponent.DoComponentsIntersect(physComp, a))
                 {
-                    if (gravityForce < 0)
+                    
+                    
+                    if (gravityForce.Value < 0)
                     {
                         if(physComp.transform.position.y < a.transform.position.y) continue;
                         
                         if (physComp.transform.position.y > a.transform.position.y)
                         {
+                            Debug.Log("Normalize_1");
                             physComp.Normalize(a);
                             break;
                         }
                     }
-                    else if (gravityForce > 0)
+                    else if (gravityForce.Value > 0)
                     {
                         if (physComp.transform.position.y > a.transform.position.y) continue;
                         
                         if (physComp.transform.position.y < a.transform.position.y)
                         {
+                            Debug.Log("Normalize_2");
                             physComp.Normalize(a);
                             break;
                         }
                     }
                 }
                 physComp.hasBottomSupport = false;
+                physComp.hasUpperSupport = false;
             }
         }
     }
-    
 
     List<WorldComponent> GetClosestComponents(WorldComponent initial, float maxDistance)
     {
@@ -133,21 +130,8 @@ public class PhysicsEngine : MonoBehaviour
         return closestComponents;
     }
 
-
-    float mapSizeX = 100;
-    float mapSizeZ = 100;
-    int checkBy = 10;
-    void CheckMapByBatches()
+    private void OnDestroy()
     {
-        for (int i = 0; i < checkBy; i++)
-        {
-            for (int j = 0; j < checkBy; j++)
-            {
-
-            }
-        }
-        // start check 10 times by 10x10
-
-
+        _compositeDisposable.Clear();
     }
 }
